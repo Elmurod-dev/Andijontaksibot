@@ -97,3 +97,4 @@ zsdoc/data
 .env/
 .venv/
 .idea/
+migrations/versions/*
