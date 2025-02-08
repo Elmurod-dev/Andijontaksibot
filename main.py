@@ -7,11 +7,11 @@ from aiogram.enums import ParseMode
 
 from bot.dispacher import TOKEN
 from bot.handlers import dp
-from bot.middilwares import all_middleware
+from bot.middilwares import all_middleware, PermissionDateMiddleware
 from db.utils import db
 from db.models import *
 
-
+dp.update.middleware(PermissionDateMiddleware())
 async def main() -> None:
     bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     # await bot.delete_webhook()

@@ -6,18 +6,19 @@ from aiogram.types import Message
 
 from bot.buttons import reply, inline
 from bot.state import DriverRegisterState
-from db.models import User
+from db.models import User, Driver
 
 driver_router = Router()
 
 
 @driver_router.message(F.text == "🚖 Haydovchi")
 async def driver_handler(message: Message, state: FSMContext) -> None:
-    user = await User.get(id_=message.from_user.id)
+    user = await Driver.get(id_=message.from_user.id)
     if not user:
         await message.answer("Ma'lumotlaringiz topilmadi!\nIltimos telefon raqamingizni yuboring!",
                              reply_markup=reply.contact_btn())
         await state.set_state(DriverRegisterState.phone_number)
+
 
 
 @driver_router.message(DriverRegisterState.phone_number, lambda message: message.contact is not None)
@@ -50,7 +51,6 @@ async def driver_car_number(message: Message, state: FSMContext) -> None:
     car_number = data['car_number']
     full_name = data['fullname']
     permission_date = (datetime.datetime.now() + datetime.timedelta(days=30)).date()
-    from aiogram import types
 
     message_txt = f"""Yangi Haydovchi 🚖
 

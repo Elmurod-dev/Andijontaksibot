@@ -1,36 +1,41 @@
+from datetime import datetime
+
+from aiogram import BaseMiddleware
+from aiogram.types import Update
 from aiogram.utils.i18n import FSMI18nMiddleware
+
+from db.models import Driver
 
 
 async def all_middleware(dp , i18n):
     dp.update.middleware(FSMI18nMiddleware(i18n))
 
-from aiogram import BaseMiddleware
-from aiogram.types import Message
-from datetime import datetime
-from db import db  # import the global db session
-from db.models import Driver
 
-class PermissionMiddleware(BaseMiddleware):
-    def __init__(self):
-        super().__init__()
 
-    async def __call__(self, handler, event: Message, data: dict):
-        # Haydovchini DB orqali tekshirish
-        driver_login = event.from_user.username
-        driver = await db._session.execute(
-            db._session.query(Driver).filter_by(login=driver_login)
-        )
-        driver = driver.scalars().first()
+class PermissionDateMiddleware(BaseMiddleware):
+    async def __call__(self, handler, event, data):
+        print({type(event)})
 
-        if not driver:
-            await event.answer("Siz ro'yxatdan o'tmagansiz.")
-            return
+        if isinstance(event, Update):
+            if event.message:
+                print("shu event")
+                user = await Driver.get(id_=event.message.from_user.id)
+                if user:
 
-        # Ruxsat muddati tugaganini tekshirish
-        if driver.permission_date < datetime.now():
-            await event.answer("Sizning ruxsat muddati tugagan. Iltimos, yangilang.")
-            return
+                    if user.permission_date < datetime.utcnow():
+                        await event.message.answer("Sizning vaqtningiz tugagan. Yangi ro'yxatdan o'tish uchun admin bilan bog'laning.")
+                        return
 
-        # Muvaffaqiyatli bo'lsa davom ettirish
-        data["driver"] = driver
+            elif event.callback_query:
+                print("CallbackQuery.")
+                user = await Driver.get(id_=event.callback_query.from_user.id)
+                if user:
+
+                    if user.permission_date < datetime.utcnow():
+                        await event.callback_query.answer("Sizning vaqtningiz tugagan. Yangi ro'yxatdan o'tish uchun admin bilan bog'laning. +998941142110")
+                        return
+            else:
+                print("Boshqacha")
+                return await handler(event, data)
+
         return await handler(event, data)
