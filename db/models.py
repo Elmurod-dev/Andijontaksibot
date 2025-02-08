@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Date, BigInteger, SmallInteger
 from sqlalchemy.orm import relationship
@@ -26,12 +26,11 @@ class Driver(CreatedModel):
     __tablename__ = "drivers"
 
     id = Column(BigInteger, primary_key=True,unique=True)
-    login = Column(String(50), unique=True, nullable=False)
-    password = Column(String(255), nullable=False)  # Hashlangan parol saqlanadi
+    phone_number = Column(String(20), unique=True, nullable=False)
+    full_name = Column(String(255), nullable=False)
     car_model = Column(String(255), nullable=False)
     car_number = Column(String(20), unique=True, nullable=False)
-    access_until = Column(Date, nullable=True)  # Botdan foydalanish muddati
-    is_approved = Column(Boolean, default=False)  # Admin tasdiqlashi kerak
+    permission_date = Column(DateTime, default=datetime.now()+timedelta(days=30))
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Foydalanuvchi bilan bog'lanish

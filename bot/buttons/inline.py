@@ -8,3 +8,10 @@
 #             InlineKeyboardButton(text='Statistika',callback_data='statistik'))
 #     return ikb.as_markup(resize=True)
 #
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+admin_done_inline_keyboard=InlineKeyboardBuilder()
+admin_done_inline_keyboard.add(
+    InlineKeyboardButton(text="✅ Done", callback_data="done"),
+)
