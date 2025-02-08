@@ -124,13 +124,31 @@ async def name_handler(message: Message, state: FSMContext) -> None:
 
 
 
-@main_router.message(OrderState.order_type,F.text == "Pochta yuboraman")
+@main_router.message(F.text == "Pochta yuboraman")
 async def order_handler(message: Message,state: FSMContext) -> None:
+    await state.clear()
     await state.update_data(order_type=message.text)
-    await state.set_state(OrderPochtaState.manzil)
-    data = ("Andijon -> Toshkent", "Toshkent -> Andijon", "❌ bekor qilish")
-    design = (2,)
-    await message.answer("Qayerdan qayerga Pochta yuborasiz?", reply_markup=generate_btn(data, design))
+    await state.set_state(OrderPochtaState.name)
+    await message.answer("Pochta Yuboruvchi ismi?")
+
+@main_router.message(OrderPochtaState.name)
+async def order_handler(message: Message,state: FSMContext) -> None:
+    await state.update_data(name=message.text)
+    await state.set_state(OrderPochtaState.phone_number)
+    await message.answer("Pochta yuboruvchi Telefon raqamini yuboring: Misol (938772345)")
+
+@main_router.message(OrderPochtaState.phone_number)
+async def order_handler(message: Message,state: FSMContext) -> None:
+    phone_number = message.text.strip()
+    if re.match(r"^\d{9}$", phone_number):
+        await state.update_data(phone_number=phone_number)
+        await state.set_state(OrderPochtaState.manzil)
+        data = ("Andijon -> Toshkent", "Toshkent -> Andijon", "❌ bekor qilish")
+        design = (2,)
+        await message.answer("Qayerdan qayerga Pochta yuborasiz?", reply_markup=generate_btn(data, design))
+    else:
+        await state.set_state(OrderPochtaState.phone_number)
+        await message.answer("Notug'ri format kiritildi\nTo'g'ri format (938772345) kabi bulishi kerak")
 
 
 
@@ -172,7 +190,7 @@ async def name_handler(message: Message, state: FSMContext) -> None:
         return
     await state.update_data(sana=text)
     data = await state.get_data()
-    phone_number = data["phone_number"]
+    phone_number = "+998"+ data["phone_number"]
     name = data["name"]
     order_type = data["order_type"]
     manzil = data["manzil"]

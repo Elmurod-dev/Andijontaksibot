@@ -15,4 +15,6 @@ class OrderPochtaState(StatesGroup):
     sana = State()
     manzil = State()
     yuk = State()
-
+    phone_number = State()
+    name = State()
+    order_type = State()
