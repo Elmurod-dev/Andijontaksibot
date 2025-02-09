@@ -72,12 +72,13 @@ async def driver_car_number(message: Message, state: FSMContext) -> None:
         reply_markup=inline.admin_done_inline_keyboard.as_markup()
     )
 
+
 #  =========================== callback query =============================
 
+
+
 @driver_router.callback_query()
-async def driver_callback_handler(query: CallbackQuery) -> None:
-    data = query.data
-    if data == 'accept':
-        print(query.message.text)
-        print(True)
-        # order=Order.get()
+async def tmphandler(query: CallbackQuery):
+    if query.data=='test':
+        print("Handler ishladi")
+        await query.answer("✅ Buyurtma qabul qilindi!", show_alert=True)

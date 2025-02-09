@@ -1,7 +1,7 @@
 from aiogram import html, Router, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 
 from bot.buttons import inline
 from bot.buttons.reply import contact_btn, generate_btn
@@ -130,7 +130,7 @@ async def name_handler(message: Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer("Tez orada siz bilan bog'lanamiz😊\nKetish soatini haydovchi bilan kelishib olasiz.")
     drivers = await Driver.get_all()
-    await send_order_to_drivers(drivers, order.id, message, address=manzil, order_type=order_type, date=sana)
+    await send_order_to_drivers(drivers,name, order.id, message, address=manzil, order_type=order_type, date=sana)
 
 
 @main_router.message(F.text == "Pochta yuboraman")
@@ -181,19 +181,23 @@ async def order_handler(message: Message, state: FSMContext) -> None:
         await message.answer("Iltimos yuk rasmini yuboring")
 
 
-async def send_order_to_drivers(drivers, order_id, message, address, order_type, date):
+async def send_order_to_drivers(drivers,user, order_id, message, address, order_type, date):
     tasks = []
+    months=["Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentabr","Oktabr","Noyabr","Dekabr"]
+    day,month=date.split(",")
+    month=months[int(month)-1]
     caption = f"""🟢 Yangi buyurtma
 <b>{address}</b>
+<b>{user}</b>
 <i>{order_type}</i>
-<code>{date}</code>
+<code>{day}-{month}</code>
 <b>#{order_id}</b>
 
 Batafsil ma'lumot uchun tugmani bosing
     """
 
     photo_id='AgACAgIAAxkBAAIDkWeomc4R__E7PiOOEcTv0mWKMMgSAALg5zEbUBtASVphMHWCgjbzAQADAgADeQADNgQ' if address.split()[0]=='Andijon' else 'AgACAgIAAxkBAAIDjmeomauPtqZELcxQ8S_dPKTdnaJKAALf5zEbUBtASXjJaqwmUSejAQADAgADeQADNgQ'
-
+    await message.bot.send_message(text='test',chat_id=5647453083,reply_markup=inline.test.as_markup())
     for driver in drivers:
         if driver.is_active:
             tasks.append(
@@ -240,8 +244,10 @@ async def name_handler(message: Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer("Tez orada siz bilan bog'lanamiz😊\nKetish soatini haydovchi bilan kelishib olasiz.")
     drivers = await Driver.get_all()
-    await send_order_to_drivers(drivers, order.id, message,address=manzil,order_type=order_type,date=sana)
+    await send_order_to_drivers(drivers,name, order.id, message,address=manzil,order_type=order_type,date=sana)
 
 @main_router.message(F.photo)
 async def send_image_code(message: Message):
     await message.reply( text=f"Photo ID: {message.photo[-1].file_id}")
+
+

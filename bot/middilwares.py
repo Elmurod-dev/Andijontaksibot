@@ -13,11 +13,9 @@ async def all_middleware(dp, i18n):
 
 class PermissionDateMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
-        print({type(event)})
 
         if isinstance(event, Update):
             if event.message:
-                print("shu event")
                 user = await Driver.get(id_=event.message.from_user.id)
                 if user:
 
@@ -30,7 +28,6 @@ class PermissionDateMiddleware(BaseMiddleware):
                         return
 
             elif event.callback_query:
-                print("CallbackQuery.")
                 user = await Driver.get(id_=event.callback_query.from_user.id)
                 if user:
                     if user.permission_date < datetime.utcnow():
@@ -41,7 +38,6 @@ class PermissionDateMiddleware(BaseMiddleware):
                         await Driver.update(id_=user.id, is_active=True)
                         return
             else:
-                print("Boshqacha")
                 return await handler(event, data)
 
         return await handler(event, data)

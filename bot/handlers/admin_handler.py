@@ -3,7 +3,7 @@ import re
 
 from aiogram.types import CallbackQuery
 
-from aiogram import Router
+from aiogram import Router,F
 
 from db.models import Driver
 
@@ -39,3 +39,8 @@ async def admin_handler(query: CallbackQuery):
            """
 
         await query.message.answer(message, parse_mode='HTML')
+
+@admin_router.callback_query()
+async def admin_routerd(query: CallbackQuery) -> None:
+    if query.data == "test":
+        print("admin router")
