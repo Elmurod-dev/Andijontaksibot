@@ -2,15 +2,16 @@ import datetime
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 
 from bot.buttons import reply, inline
 from bot.state import DriverRegisterState
-from db.models import User, Driver
+from db.models import User, Driver, Order
 
 driver_router = Router()
 
 
+# ============ driver send request to register ===========
 @driver_router.message(F.text == "🚖 Haydovchi")
 async def driver_handler(message: Message, state: FSMContext) -> None:
     user = await Driver.get(id_=message.from_user.id)
@@ -18,7 +19,6 @@ async def driver_handler(message: Message, state: FSMContext) -> None:
         await message.answer("Ma'lumotlaringiz topilmadi!\nIltimos telefon raqamingizni yuboring!",
                              reply_markup=reply.contact_btn())
         await state.set_state(DriverRegisterState.phone_number)
-
 
 
 @driver_router.message(DriverRegisterState.phone_number, lambda message: message.contact is not None)
@@ -64,10 +64,20 @@ async def driver_car_number(message: Message, state: FSMContext) -> None:
 
 🔔 <b>Adminlar tomonidan ko'rib chiqiladi!</b>
     """
-    await message.answer(message_txt,parse_mode='HTML')
+    await message.answer(message_txt, parse_mode='HTML')
     await message.bot.send_message(
         chat_id=5647453083,
         text=message_txt,
         parse_mode="HTML",
         reply_markup=inline.admin_done_inline_keyboard.as_markup()
     )
+
+#  =========================== callback query =============================
+
+@driver_router.callback_query()
+async def driver_callback_handler(query: CallbackQuery) -> None:
+    data = query.data
+    if data == 'accept':
+        print(query.message.text)
+        print(True)
+        # order=Order.get()

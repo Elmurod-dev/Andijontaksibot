@@ -31,10 +31,12 @@ class Driver(CreatedModel):
     car_model = Column(String(255), nullable=False)
     car_number = Column(String(20), unique=True, nullable=False)
     permission_date = Column(DateTime, default=datetime.now()+timedelta(days=30))
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Foydalanuvchi bilan bog'lanish
     user = relationship("User", back_populates="driver")
+
 
 
 # 3️⃣ Adminlar jadvali
@@ -51,7 +53,7 @@ class Order(CreatedModel):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    passenger_id = Column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    passenger_id = Column(BigInteger, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     driver_id = Column(BigInteger, ForeignKey("drivers.id", ondelete="SET NULL"),
                        nullable=True,default=None)  # Agar haydovchi topilmasa, NULL bo‘lishi mumkin
     dropoff_location = Column(String(255), nullable=False)  # Manzil

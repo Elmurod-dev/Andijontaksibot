@@ -11,7 +11,12 @@
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-admin_done_inline_keyboard=InlineKeyboardBuilder()
+admin_done_inline_keyboard = InlineKeyboardBuilder()
 admin_done_inline_keyboard.add(
     InlineKeyboardButton(text="✅ Done", callback_data="done"),
+)
+
+driver_accept_inline_keyboard = InlineKeyboardBuilder()
+driver_accept_inline_keyboard.add(
+    InlineKeyboardButton(text='✅ Qabul qilish', callback_data='accept')
 )
