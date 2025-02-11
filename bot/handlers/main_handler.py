@@ -197,7 +197,6 @@ Batafsil ma'lumot uchun tugmani bosing
     """
 
     photo_id='AgACAgIAAxkBAAIDkWeomc4R__E7PiOOEcTv0mWKMMgSAALg5zEbUBtASVphMHWCgjbzAQADAgADeQADNgQ' if address.split()[0]=='Andijon' else 'AgACAgIAAxkBAAIDjmeomauPtqZELcxQ8S_dPKTdnaJKAALf5zEbUBtASXjJaqwmUSejAQADAgADeQADNgQ'
-    await message.bot.send_message(text='test',chat_id=5647453083,reply_markup=inline.test.as_markup())
     for driver in drivers:
         if driver.is_active:
             tasks.append(
