@@ -43,4 +43,4 @@ async def admin_handler(query: CallbackQuery):
 @admin_router.callback_query()
 async def admin_routerd(query: CallbackQuery) -> None:
     if query.data == "test":
-        print("admin router")
+        print("admin roueter")
