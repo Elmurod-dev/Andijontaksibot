@@ -20,7 +20,7 @@ driver_accept_inline_keyboard = InlineKeyboardBuilder()
 driver_accept_inline_keyboard.add(
     InlineKeyboardButton(text='✅ Qabul qilish', callback_data='accept')
 )
-test = InlineKeyboardBuilder()
-test.add(
-    InlineKeyboardButton(text='Test', callback_data='test')
+ok = InlineKeyboardBuilder()
+ok.add(
+    InlineKeyboardButton(text='Ok', callback_data='ok')
 )

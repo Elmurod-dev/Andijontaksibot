@@ -18,7 +18,6 @@ class PermissionDateMiddleware(BaseMiddleware):
             if event.message:
                 user = await Driver.get(id_=event.message.from_user.id)
                 if user:
-
                     if user.permission_date < datetime.utcnow():
                         await Driver.update(id_=user.id, is_active=False)
                         await event.message.answer(
@@ -26,6 +25,7 @@ class PermissionDateMiddleware(BaseMiddleware):
                     else:
                         await Driver.update(id_=user.id, is_active=True)
                         return
+
 
             elif event.callback_query:
                 user = await Driver.get(id_=event.callback_query.from_user.id)
@@ -36,8 +36,9 @@ class PermissionDateMiddleware(BaseMiddleware):
                             "Sizning vaqtningiz tugagan. Yangi ro'yxatdan o'tish uchun admin bilan bog'laning. +998941142110")
                     else:
                         await Driver.update(id_=user.id, is_active=True)
-                        return
+                    return await handler(event, data)
+                else:
+                    return await handler(event, data)
             else:
                 return await handler(event, data)
-
         return await handler(event, data)
