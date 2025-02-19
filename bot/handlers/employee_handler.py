@@ -8,7 +8,7 @@ from bot.buttons import reply, inline
 from bot.buttons.inline import ok
 
 from bot.state import DriverRegisterState
-from db.models import User, Driver, Order
+from db.models import User, Driver, Order, OrderMessage
 
 driver_router = Router()
 
@@ -100,47 +100,73 @@ async def driver_car_number(message: Message, state: FSMContext) -> None:
 
 #  =========================== callback query =============================
 
-async def base_handler(bot:Bot,dp:Dispatcher) -> None:
-    @driver_router.callback_query()
-    async def driver_accept_handler(query: CallbackQuery):
-        if query.data == 'accept':
-            # await query.answer("✅ Buyurtma qabul qilindi!", show_alert=True)
-            id = query.message.caption.split('\n')[5].lstrip('#')
-            order=await Order.get(id_=int(id))
-            user=await User.get(id_=order.passenger_id)
-            user_data = f"""
-    <b>Ism Sharifi:</b> {user.full_name}\n
-    <b>Telefon raqam:</b> {user.phone_number}\n
-    <b>Jinsi:</b> {user.jinsi}\n
-    <b>Yuk:</b> {order.yuk}\n
-    <b>Order type:</b> {order.order_type}\n
-    <b>Sana:</b> {order.sana}\n
+@driver_router.callback_query()
+async def driver_accept_handler(query: CallbackQuery):
+    if query.data == 'accept':
+        # await query.answer("✅ Buyurtma qabul qilindi!", show_alert=True)
+        id = query.message.caption.split('\n')[5].lstrip('#')
+        order = await Order.get(id_=int(id))
+        user = await User.get(id_=order.passenger_id)
+        user_data = f"""<b>Ism Sharifi:</b> {user.full_name}\n
+<b>Telefon raqam:</b> {user.phone_number}\n
+<b>Jinsi:</b> {user.jinsi}\n
+<b>Yuk:</b> {order.yuk}\n
+<b>Order type:</b> {order.order_type}\n
+<b>Sana:</b> {order.sana}\n
             """
-            if not order.driver_id:
-                await query.message.reply(user_data, parse_mode='HTML')
+        if not order.driver_id:
+            await query.message.reply(user_data, parse_mode='HTML')
 
-                # await asyncio.sleep(40)
-                driver = await Driver.get(id_=int(query.message.chat.id))
-                print(query.message.chat.id)
-                if driver:
-                    print('KJDHslaijhd')
-                    user_data = f"""Siz {driver.phone_number} raqamidagi haydovchi bilan bog'landingizmi? 
-                Agar bog'lanib, kelishuvga erishgan bo'lsangiz, "OK" tugmasini bosing. 
-                Shunda e'loningiz barcha haydovchilardan o'chirib tashlanadi.
-                        """
+            # await asyncio.sleep(40)
+            driver = await Driver.get(id_=int(query.message.chat.id))
+            print(query.message.chat.id)
+            if driver:
+                driver_phone = driver.phone_number
+                order_id = order.id
+                user_data = f"""Siz <b>{driver_phone}</b> raqamidagi haydovchi bilan bog'landingizmi?
+Agar bog'lanib, kelishuvga erishgan bo'lsangiz, <b>"OK"</b> tugmasini bosing.
+Shunda e'loningiz barcha haydovchilardan o'chirib tashlanadi.
 
-                    await bot.send_message(chat_id=user.id,text = user_data, reply_markup = ok.as_markup())
+<b>#{order_id} {driver.id}</b>
+                    """
 
-            else:
-                await query.answer("allaqachon haydovchi biriktirilgan", show_alert=True)
+                await query.message.bot.send_message(chat_id=user.id, text=user_data, parse_mode='HTML',
+                                                     reply_markup=ok.as_markup())
 
-        if query.data == 'done':
-            print(True)
-            message_text = query.message.text
-            data = await parse_driver_info(message_text)
-            await Driver.create(**data)
-            message = """
+        else:
+            await query.answer("allaqachon haydovchi biriktirilgan", show_alert=True)
+
+    if query.data == 'done':
+        print(True)
+        message_text = query.message.text
+        data = await parse_driver_info(message_text)
+        await Driver.create(**data)
+        message = """
                    <b>🟢 Haydovchi muvafaqqiyatli ro'yxatga olindi!</b>
                    """
-            await query.message.answer(message, parse_mode='HTML')
+        await query.message.answer(message, parse_mode='HTML')
+    if query.data == 'ok':
+        order_id = query.message.text.split('\n')[4].split()[0].lstrip('#').strip()
+        driver_id = query.message.text.split('\n')[4].split()[1]
+        drivers = await Driver.get_all()
+        # order=await OrderMessage.get(id_=int(order_id))
+        message_ids = []
+        order = await Order.get(int(order_id))
+        ordermessages = await OrderMessage.get_all()
+        if ordermessages:
+            for i in ordermessages:
+                if str(i.order_id) == str(order_id):
+                    message_ids.append(i.message_id)
 
+        await Order.update(id_=int(order_id), driver_id=int(driver_id))
+        await delete_order_messages(drivers, query.message, message_ids)
+
+async def delete_order_messages(drivers, message, message_ids):
+        tasks = []
+
+        for i in range(len(message_ids)):
+            tasks.append(
+                message.bot.delete_message(chat_id=drivers[i].id, message_id=int(message_ids[i]))
+            )
+
+        await asyncio.gather(*tasks)

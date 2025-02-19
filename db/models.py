@@ -62,9 +62,23 @@ class Order(CreatedModel):
     order_type = Column(String(50), nullable=False)
     sana = Column(String(5))
     count = Column(SmallInteger, nullable=True,default=0)
+
+
+
+
     # Bog‘lanishlar
     passenger = relationship("User", backref="orders")
     driver = relationship("Driver", backref="orders")
+    messages = relationship("OrderMessage", lazy='dynamic')
 
 
+
+class OrderMessage(CreatedModel):
+    __tablename__ = "order_messages"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    order_id = Column(BigInteger, ForeignKey("orders.id"), nullable=False)
+    user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
+    message_id=Column(String(255), nullable=True)
+
+    user = relationship("User", backref="messages")
 metadata = Base.metadata

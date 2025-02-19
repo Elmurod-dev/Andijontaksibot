@@ -6,13 +6,12 @@ from aiogram.types import Message, CallbackQuery
 from bot.buttons import inline
 from bot.buttons.reply import contact_btn, generate_btn
 from bot.state import OrderState, OrderPochtaState
-from db.models import User, Order, Driver
+from db.models import User, Order, Driver, OrderMessage
 import re
 import asyncio
 
 
 main_router = Router()
-
 
 @main_router.message(F.text == "❌ bekor qilish")
 @main_router.message(CommandStart())
@@ -130,7 +129,8 @@ async def name_handler(message: Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer("Tez orada siz bilan bog'lanamiz😊\nKetish soatini haydovchi bilan kelishib olasiz.")
     drivers = await Driver.get_all()
-    await send_order_to_drivers(drivers,name, order.id, message, address=manzil, order_type=order_type, date=sana)
+    await send_order_to_drivers(drivers, name, order.id, message, address=manzil, order_type=order_type, date=sana,
+                                user_id=user.id)
 
 
 @main_router.message(F.text == "Pochta yuboraman")
@@ -181,11 +181,13 @@ async def order_handler(message: Message, state: FSMContext) -> None:
         await message.answer("Iltimos yuk rasmini yuboring")
 
 
-async def send_order_to_drivers(drivers,user, order_id, message, address, order_type, date):
+async def send_order_to_drivers(drivers, user, order_id, message, address, order_type, date, user_id):
     tasks = []
-    months=["Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentabr","Oktabr","Noyabr","Dekabr"]
-    day,month=date.split(",")
-    month=months[int(month)-1]
+    months = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr",
+              "Dekabr"]
+    day, month = date.split(",")
+    month = months[int(month) - 1]
+
     caption = f"""🟢 Yangi buyurtma
 <b>{address}</b>
 <b>{user}</b>
@@ -196,18 +198,24 @@ async def send_order_to_drivers(drivers,user, order_id, message, address, order_
 Batafsil ma'lumot uchun tugmani bosing
     """
 
-    photo_id='AgACAgIAAxkBAAIDkWeomc4R__E7PiOOEcTv0mWKMMgSAALg5zEbUBtASVphMHWCgjbzAQADAgADeQADNgQ' if address.split()[0]=='Andijon' else 'AgACAgIAAxkBAAIDjmeomauPtqZELcxQ8S_dPKTdnaJKAALf5zEbUBtASXjJaqwmUSejAQADAgADeQADNgQ'
+    photo_id = 'AgACAgIAAxkBAAIDkWeomc4R__E7PiOOEcTv0mWKMMgSAALg5zEbUBtASVphMHWCgjbzAQADAgADeQADNgQ' \
+        if address.split()[0] == 'Andijon' else \
+        'AgACAgIAAxkBAAIDjmeomauPtqZELcxQ8S_dPKTdnaJKAALf5zEbUBtASXjJaqwmUSejAQADAgADeQADNgQ'
+
     for driver in drivers:
         if driver.is_active:
-            tasks.append(
-                message.bot.send_photo(
-                    chat_id=driver.id,
-                    photo=photo_id,
-                    caption=caption,
-                    parse_mode='HTML',
-                    reply_markup=inline.driver_accept_inline_keyboard.as_markup()
-                )
+            msg = await message.bot.send_photo(
+                chat_id=driver.id,
+                photo=photo_id,
+                caption=caption,
+                parse_mode='HTML',
+                reply_markup=inline.driver_accept_inline_keyboard.as_markup()
             )
+
+            tasks.append(
+                OrderMessage.create( order_id=order_id, user_id=user_id,message_id=str(msg.message_id))
+            )
+
     await asyncio.gather(*tasks)
 
 
@@ -243,10 +251,13 @@ async def name_handler(message: Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer("Tez orada siz bilan bog'lanamiz😊\nKetish soatini haydovchi bilan kelishib olasiz.")
     drivers = await Driver.get_all()
-    await send_order_to_drivers(drivers,name, order.id, message,address=manzil,order_type=order_type,date=sana)
+    await send_order_to_drivers(drivers,name, order.id, message,address=manzil,order_type=order_type,date=sana,user_id=user.id)
 
 @main_router.message(F.photo)
 async def send_image_code(message: Message):
-    await message.reply( text=f"Photo ID: {message.photo[-1].file_id}")
+    (await message.reply( text=f"Photo ID: {message.photo[-1].file_id}"))
+
+
+
 
 
