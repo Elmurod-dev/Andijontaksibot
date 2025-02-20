@@ -62,6 +62,7 @@ class Order(CreatedModel):
     order_type = Column(String(50), nullable=False)
     sana = Column(String(5))
     count = Column(SmallInteger, nullable=True,default=0)
+    driver_visit_count = Column(SmallInteger, nullable=True,default=0)
 
 
 

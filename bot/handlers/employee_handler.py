@@ -107,26 +107,28 @@ async def driver_accept_handler(query: CallbackQuery):
         id = query.message.caption.split('\n')[5].lstrip('#')
         order = await Order.get(id_=int(id))
         user = await User.get(id_=order.passenger_id)
-        user_data = f"""<b>Ism Sharifi:</b> {user.full_name}\n
-<b>Telefon raqam:</b> {user.phone_number}\n
-<b>Jinsi:</b> {user.jinsi}\n
-<b>Yuk:</b> {order.yuk}\n
-<b>Order type:</b> {order.order_type}\n
-<b>Sana:</b> {order.sana}\n
+        user_data = f"""Ism Sharifi: {user.full_name}\n
+Telefon raqam: {user.phone_number}\n
+Jinsi: {user.jinsi}\n
+Yuk: {order.yuk}\n
+Order type: {order.order_type}\n
+Sana:{order.sana}\n
             """
         if not order.driver_id:
-            await query.message.reply(user_data, parse_mode='HTML')
+            await query.answer(user_data,show_alert=True)
 
-            # await asyncio.sleep(40)
             driver = await Driver.get(id_=int(query.message.chat.id))
             print(query.message.chat.id)
             if driver:
                 driver_phone = driver.phone_number
                 order_id = order.id
+                visit_count=order.driver_visit_count
+                await order.update(id_=order_id,driver_visit_count=visit_count+1)
                 user_data = f"""Siz <b>{driver_phone}</b> raqamidagi haydovchi bilan bog'landingizmi?
 Agar bog'lanib, kelishuvga erishgan bo'lsangiz, <b>"OK"</b> tugmasini bosing.
 Shunda e'loningiz barcha haydovchilardan o'chirib tashlanadi.
 
+👁Qiziqishlar soni: <b>{order.driver_visit_count}</b>ta
 <b>#{order_id} {driver.id}</b>
                     """
 
@@ -146,8 +148,8 @@ Shunda e'loningiz barcha haydovchilardan o'chirib tashlanadi.
                    """
         await query.message.answer(message, parse_mode='HTML')
     if query.data == 'ok':
-        order_id = query.message.text.split('\n')[4].split()[0].lstrip('#').strip()
-        driver_id = query.message.text.split('\n')[4].split()[1]
+        order_id = query.message.text.split('\n')[5].split()[0].lstrip('#').strip()
+        driver_id = query.message.text.split('\n')[5].split()[1]
         drivers = await Driver.get_all()
         # order=await OrderMessage.get(id_=int(order_id))
         message_ids = []
@@ -155,18 +157,51 @@ Shunda e'loningiz barcha haydovchilardan o'chirib tashlanadi.
         ordermessages = await OrderMessage.get_all()
         if ordermessages:
             for i in ordermessages:
-                if str(i.order_id) == str(order_id):
+                if int(i.order_id) == int(order_id):
                     message_ids.append(i.message_id)
 
-        await Order.update(id_=int(order_id), driver_id=int(driver_id))
-        await delete_order_messages(drivers, query.message, message_ids)
+        if order.driver_id is not None:
+            driver = await Driver.get(id_=int(driver_id))
+            text = f"""Siz {driver.full_name} ismli haydovchiga biriktirildingiz ✅
+Shuningdek, e'loningiz barcha haydovchilardan o‘chirildi.
+📞 Telefon: +{driver.phone_number}  
+🚗 Mashina modeli: {driver.car_model}  
+🔢 Davlat raqami: {driver.car_number}
+                        """
+            await query.answer(text,show_alert=True)
+            await query.message.delete()
+        else:
+            await Order.update(id_=int(order_id), driver_id=int(driver_id))
+            await delete_order_messages(drivers, query.message, message_ids)
+            driver=await Driver.get(id_=int(driver_id))
+            text = f"""<b>Siz {driver.full_name} ismli haydovchiga biriktirildingiz ✅</b>
+Shuningdek, e'loningiz barcha haydovchilardan o‘chirildi.
+📞 <b>Telefon:</b> +{driver.phone_number}  
+🚗 <b>Mashina modeli:</b> {driver.car_model}  
+🔢 <b>Davlat raqami:</b> {driver.car_number}
+            """
 
-async def delete_order_messages(drivers, message, message_ids):
-        tasks = []
+            await query.message.edit_text(text, parse_mode="HTML")
 
-        for i in range(len(message_ids)):
-            tasks.append(
-                message.bot.delete_message(chat_id=drivers[i].id, message_id=int(message_ids[i]))
+            await query.message.bot.send_message(
+                chat_id=driver_id,
+                text="Mijoz sizning taklifingizni qabul qildi! ✅",
+                parse_mode='HTML'
             )
 
-        await asyncio.gather(*tasks)
+
+import asyncio
+
+async def delete_order_messages(drivers, message, message_ids):
+    tasks = []
+
+    for i in range(len(message_ids)):
+        try:
+            task = message.bot.delete_message(chat_id=drivers[i].id, message_id=int(message_ids[i]))
+            tasks.append(task)
+        except Exception as e:
+            print(f"Xatolik yuz berdi: {e}")
+            continue
+
+    await asyncio.gather(*tasks)
+
