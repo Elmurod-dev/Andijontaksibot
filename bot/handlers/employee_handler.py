@@ -4,8 +4,11 @@ from datetime import datetime, timedelta
 from aiogram import Router, F, Bot, Dispatcher
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
+from sqlalchemy import null
+
 from bot.buttons import reply, inline
 from bot.buttons.inline import ok, cancel_order_inline_keyboard
+from bot.handlers.main_handler import send_order_to_drivers
 
 from bot.state import DriverRegisterState
 from db.models import User, Driver, Order, OrderMessage
@@ -166,9 +169,12 @@ Shunda e'loningiz barcha haydovchilardan o'chirib tashlanadi.
 📞 Telefon: +{driver.phone_number}  
 🚗 Mashina modeli: {driver.car_model}  
 🔢 Davlat raqami: {driver.car_number}
+
+<b>#{order_id} #{driver.id}</b>
                         """
 
             await query.bot.edit_message_text(
+                parse_mode='HTML',
                 text=text,
                 chat_id=query.message.chat.id,  # Chat ID-ni qo‘shish shart
                 message_id=query.message.message_id,  # Message ID kerak!
@@ -193,9 +199,27 @@ Shuningdek, e'loningiz barcha haydovchilardan o‘chirildi.
                 text="Mijoz sizning taklifingizni qabul qildi! ✅",
                 parse_mode='HTML'
             )
+    if query.data == 'cancel':
+        message_text_split = query.message.text.split('\n')
+        if len(message_text_split) == 6:
+            order_id = message_text_split[5].split()[0].lstrip('#').strip()
+            driver_id = message_text_split[5].split()[1].lstrip('#').strip()
+            drivers = await Driver.get_all()
+            order = await Order.get(id_=int(order_id))
+            if order.driver_id:
+                await Order.update(int(order_id), driver_id=None)
+                await send_order_to_drivers(drivers, 'sakd', order.id, query.message, order.dropoff_location,
+                                            order.order_type, order.sana, order.passenger_id)
+
+                text = """
+                ✅<b>Haydovchi</b> bekor qilindi va sizning <b>buyurtmangiz</b> boshqa <i>haydovchilarga</i> yuborildi
+                """
+
+                await query.message.answer(text, parse_mode="HTML")
 
 
-import asyncio
+
+
 
 
 # async def delete_order_messages(drivers, message, message_ids):

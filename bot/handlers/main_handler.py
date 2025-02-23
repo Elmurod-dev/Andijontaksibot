@@ -212,9 +212,9 @@ Batafsil ma'lumot uchun tugmani bosing
                 reply_markup=inline.driver_accept_inline_keyboard.as_markup()
             )
 
-            tasks.append(
-                OrderMessage.create( order_id=order_id, user_id=user_id,message_id=str(msg.message_id))
-            )
+            # tasks.append(
+            #     OrderMessage.create( order_id=order_id, user_id=user_id,message_id=str(msg.message_id))
+            # )
 
     await asyncio.gather(*tasks)
 
