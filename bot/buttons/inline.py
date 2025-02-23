@@ -24,3 +24,8 @@ ok = InlineKeyboardBuilder()
 ok.add(
     InlineKeyboardButton(text='Ok', callback_data='ok')
 )
+
+cancel_order_inline_keyboard = InlineKeyboardBuilder()
+cancel_order_inline_keyboard.add(
+    InlineKeyboardButton(text='❌ Bekor qilish', callback_data='cancel')
+)
