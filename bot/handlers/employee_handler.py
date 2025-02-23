@@ -208,7 +208,7 @@ Shuningdek, e'loningiz barcha haydovchilardan o‘chirildi.
             order = await Order.get(id_=int(order_id))
             if order.driver_id:
                 await Order.update(int(order_id), driver_id=None)
-                await send_order_to_drivers(drivers, 'sakd', order.id, query.message, order.dropoff_location,
+                await send_order_to_drivers(drivers, order.passenger.name, order.id, query.message, order.dropoff_location,
                                             order.order_type, order.sana, order.passenger_id)
 
                 text = """
