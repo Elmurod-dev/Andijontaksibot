@@ -1,0 +1,29 @@
+services:
+  bot:
+    build: .
+    depends_on:
+      pg:
+        condition: service_healthy
+    container_name: taksi_bot
+    restart: always
+    env_file:
+      - .env
+
+  pg:
+    image: postgres:alpine
+    container_name: pg
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 1
+    ports:
+      - 5432:5432
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+volumes:
+  pg_data:

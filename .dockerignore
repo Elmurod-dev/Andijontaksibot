@@ -1,0 +1,23 @@
+# Virtual environment directories
+.venv/
+venv/
+.Python
+
+# pip
+pip-selfcheck.json
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# IDE directories
+.idea/
+migrations/versions/*
+.git/
+.env_copy
+README.md
+TZ
+test.py
+TODO
+.gitignore
