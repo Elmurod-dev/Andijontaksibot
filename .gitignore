@@ -95,4 +95,3 @@ zsdoc/data
 !/tests/_output/.gitkeep
 .venv/
 .idea/
-migrations/versions/*
