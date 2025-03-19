@@ -144,11 +144,19 @@ Shunda e'loningiz barcha haydovchilardan o'chirib tashlanadi.
 
         message_text = query.message.text
         data = await parse_driver_info(message_text)
-        await Driver.create(**data)
-        message = """
-                   <b>🟢 Haydovchi muvafaqqiyatli ro'yxatga olindi!</b>
-                   """
-        await query.message.answer(message, parse_mode='HTML')
+        if not Driver.get(id_=data['driver_id']):
+            await Driver.create(**data)
+            message = """
+                               <b>🟢 Haydovchi muvafaqqiyatli ro'yxatga olindi!</b>
+                               """
+            await query.message.answer(message, parse_mode='HTML')
+        else:
+            await Driver.delete(id_=data['driver_id'])
+            await Driver.create(**data)
+            message = """
+                       <b>🟢 Haydovchi muvafaqqiyatli ro'yxatga olindi!</b>
+                       """
+            await query.message.answer(message, parse_mode='HTML')
     if query.data == 'ok':
         order_id = query.message.text.split('\n')[5].split()[0].lstrip('#').strip()
         driver_id = query.message.text.split('\n')[5].split()[1]
