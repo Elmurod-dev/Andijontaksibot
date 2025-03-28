@@ -29,7 +29,7 @@ class Driver(CreatedModel):
     phone_number = Column(String(20), unique=True, nullable=False)
     full_name = Column(String(255), nullable=False)
     car_model = Column(String(255), nullable=False)
-    car_number = Column(String(20), unique=True, nullable=False)
+    car_number = Column(String(20), nullable=False)
     permission_date = Column(DateTime, default=datetime.now()+timedelta(days=30))
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)

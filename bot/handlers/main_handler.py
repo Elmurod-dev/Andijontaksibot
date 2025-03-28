@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 from aiogram import html, Router, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -264,3 +266,8 @@ async def name_handler(message: Message, state: FSMContext) -> None:
 # @main_router.message(F.photo)
 # async def send_image_code(message: Message):
 #     (await message.reply(text=f"Photo ID: {message.photo[-1].file_id}"))
+
+
+
+
+
